@@ -36,6 +36,7 @@ test("living lotus changes its WebGL pose when opened", async ({ page }) => {
   const scene = page.locator(".concept-scene--lotus")
   await expect(scene).toHaveAttribute("data-scene-ready", "true")
   const canvas = scene.locator("canvas")
+  await canvas.evaluate((element) => { element.style.background = "#000" })
   await page.waitForTimeout(500)
   const before = await canvas.screenshot({ animations: "allow" })
   await page.getByRole("button", { name: "Open the lotus" }).click()
