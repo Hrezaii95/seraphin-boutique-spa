@@ -39,6 +39,7 @@ function ExternalLink({ href, children, className = "", label }: { href: string;
 export default function App() {
   const [locale, setLocale] = useState<Locale>(getInitialLocale)
   const [menuOpen, setMenuOpen] = useState(false)
+  const reduce = useReducedMotion()
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const navRef = useRef<HTMLElement>(null)
   const t = copy[locale]
@@ -116,24 +117,26 @@ export default function App() {
 
       <main id="main">
         <section className="hero" id="top">
+          <div className="hero-cinematic-bg" aria-hidden="true"><i></i><i></i><i></i></div>
           <div className="hero-copy">
-            <p className="eyebrow">{t.hero.eyebrow}</p>
-            <h1>{t.hero.title}</h1>
-            <p className="hero-body">{t.hero.body}</p>
-            <div className="hero-actions">
+            <motion.p className="eyebrow" initial={{ opacity: 0, y: reduce ? 0 : 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduce ? 0 : 0.18, duration: reduce ? 0.1 : 0.7, ease: [0.22, 1, 0.36, 1] }}>{t.hero.eyebrow}</motion.p>
+            <motion.h1 initial={{ opacity: 0, y: reduce ? 0 : 42, clipPath: reduce ? "none" : "inset(0 0 100% 0)" }} animate={{ opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)" }} transition={{ delay: reduce ? 0 : 0.26, duration: reduce ? 0.1 : 1.05, ease: [0.22, 1, 0.36, 1] }}>{t.hero.title}</motion.h1>
+            <motion.p className="hero-body" initial={{ opacity: 0, y: reduce ? 0 : 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduce ? 0 : 0.58, duration: reduce ? 0.1 : 0.72, ease: [0.22, 1, 0.36, 1] }}>{t.hero.body}</motion.p>
+            <motion.div className="hero-actions" initial={{ opacity: 0, y: reduce ? 0 : 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduce ? 0 : 0.72, duration: reduce ? 0.1 : 0.68, ease: [0.22, 1, 0.36, 1] }}>
               <a className="button button-primary" href="#treatments">{t.hero.primary}<span aria-hidden="true">↓</span></a>
               <a className="button button-quiet" href="#finder">{t.hero.secondary}<span aria-hidden="true">→</span></a>
-            </div>
-            <p className="hero-note"><span aria-hidden="true"></span>{t.hero.note}</p>
+            </motion.div>
+            <motion.p className="hero-note" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: reduce ? 0 : 0.9, duration: reduce ? 0.1 : 0.7 }}><span aria-hidden="true"></span>{t.hero.note}</motion.p>
           </div>
-          <div className="hero-art">
+          <motion.div className="hero-art" initial={{ opacity: 0, scale: reduce ? 1 : 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: reduce ? 0 : 0.12, duration: reduce ? 0.1 : 1.3, ease: [0.22, 1, 0.36, 1] }}>
             <div className="quiet-bloom">
               <Suspense fallback={<div className="quiet-bloom-loading" aria-hidden="true"></div>}>
                 <QuietBloom ariaLabel={t.hero.art} />
               </Suspense>
             </div>
-            <span className="hero-art-label">The Quiet Bloom <i>01</i></span>
-          </div>
+            <span className="hero-art-label">The breathing stone <i>01</i></span>
+          </motion.div>
+          <a className="hero-scroll-cue" href="#finder" aria-label={t.nav.finder}><span></span></a>
           <div className="hero-rail" aria-label="Highlights">
             {t.trust.map((item, index) => <span key={item}><i>{String(index + 1).padStart(2, "0")}</i>{item}</span>)}
           </div>

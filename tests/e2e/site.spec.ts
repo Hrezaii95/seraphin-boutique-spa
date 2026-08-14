@@ -5,8 +5,23 @@ test("renders the premium landing experience and real booking path", async ({ pa
   await page.goto("")
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Come back to your body")
   await expect(page.getByRole("link", { name: /Book a ritual/ }).first()).toHaveAttribute("href", "https://emly.am/b/seraphin")
-  await expect(page.locator("canvas, .quiet-bloom-fallback").first()).toBeVisible()
+  await expect(page.locator(".stone-silk-scene")).toBeVisible()
   await expect(page.getByText("15,000").first()).toBeVisible()
+})
+
+test("renders live motion in the cinematic hero", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "One motion sample is sufficient")
+  await page.goto("")
+  const scene = page.locator(".stone-silk-scene")
+  await expect(scene).toHaveAttribute("data-webgl-status", "ready")
+  const canvas = scene.locator("canvas")
+  await page.waitForTimeout(2200)
+  await canvas.evaluate((element) => { element.style.background = "#000" })
+  const firstFrame = await canvas.screenshot({ animations: "allow" })
+  await page.waitForTimeout(700)
+  const secondFrame = await canvas.screenshot({ animations: "allow" })
+  const changedBytes = firstFrame.reduce((total, byte, index) => total + Number(byte !== secondFrame[index]), 0)
+  expect(changedBytes).toBeGreaterThan(2000)
 })
 
 test("switches language and exposes the complete treatment navigation", async ({ page }) => {

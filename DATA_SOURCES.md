@@ -17,6 +17,8 @@ Captured: 14 August 2026.
 
 The production demo uses the existing logo and six images posted by `@seraphin.spa`. No collaborator post, reviewer image, Google image or Yandex image is shipped. Availability on a business account is not by itself a copyright licence: obtain the original files, written owner approval and identifiable-subject consent before the commercial domain launch.
 
+The Breathing Stone hero plate is an original AI-generated concept asset created for this demonstration from the approved visual mock. It is atmospheric brand artwork, not photography of Seraphin's actual premises. Live silk, water, particle and parallax motion is rendered separately in Three.js.
+
 ## Copy policy
 
 - English is editorially revised from the public service menu.

@@ -1,6 +1,6 @@
 # Seraphin Boutique Spa website
 
-Premium multilingual website for Seraphin Boutique Spa in Yerevan. The experience combines an accessible WebGL Quiet Bloom hero, a complete price catalogue, a ritual finder, real venue imagery and direct Emly/WhatsApp booking.
+Premium multilingual website for Seraphin Boutique Spa in Yerevan. The experience combines a cinematic Breathing Stone hero with live WebGL silk, water and pointer motion, a complete price catalogue, a ritual finder, real venue imagery and direct Emly/WhatsApp booking.
 
 ## Public surfaces
 

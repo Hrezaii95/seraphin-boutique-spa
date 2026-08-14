@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 
 type QuietBloomProps = {
@@ -9,124 +9,62 @@ type DeviceNavigator = Navigator & {
   deviceMemory?: number
 }
 
-type PetalState = {
-  pivot: THREE.Group
-  material: THREE.MeshStandardMaterial
-  radius: number
-  delay: number
+type Ripple = {
+  mesh: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>
+  phase: number
 }
 
-const PALETTE = {
-  forest: 0x20352a,
-  olive: 0x949565,
-  cocoa: 0x503224,
-  parchment: 0xe8e0d5,
-  brass: 0x907631,
+const COLORS = {
+  forest: 0x0b1a14,
+  brass: 0xb89443,
+  brassLight: 0xe2c67f,
   ivory: 0xfaf3e3,
 } as const
 
-const FALLBACK_PETALS = [
-  "#20352A",
-  "#949565",
-  "#503224",
-  "#E8E0D5",
-  "#2E3C2C",
-  "#949565",
-  "#503224",
-  "#E8E0D5",
-  "#20352A",
-]
+const easeOutExpo = (value: number) => value === 1 ? 1 : 1 - 2 ** (-10 * value)
 
-function easeOutQuint(value: number) {
-  return 1 - (1 - value) ** 5
-}
+function createRibbonGeometry(points: THREE.Vector3[], width: number, segments: number) {
+  const curve = new THREE.CatmullRomCurve3(points, true, "catmullrom", 0.55)
+  const positions: number[] = []
+  const uvs: number[] = []
+  const indices: number[] = []
+  const viewAxis = new THREE.Vector3(0, 0, 1)
+  const fallbackAxis = new THREE.Vector3(0, 1, 0)
 
-function createLeafGeometry(lowEnd: boolean) {
-  const leaf = new THREE.Shape()
-  leaf.moveTo(0, -0.82)
-  leaf.bezierCurveTo(-0.42, -0.7, -0.76, -0.22, -0.62, 0.28)
-  leaf.bezierCurveTo(-0.52, 0.62, -0.2, 0.88, 0, 1.02)
-  leaf.bezierCurveTo(0.2, 0.88, 0.52, 0.62, 0.62, 0.28)
-  leaf.bezierCurveTo(0.76, -0.22, 0.42, -0.7, 0, -0.82)
+  for (let index = 0; index <= segments; index += 1) {
+    const progress = index / segments
+    const point = curve.getPointAt(progress)
+    const tangent = curve.getTangentAt(progress).normalize()
+    const side = new THREE.Vector3().crossVectors(tangent, viewAxis)
+    if (side.lengthSq() < 0.001) side.crossVectors(tangent, fallbackAxis)
+    side.normalize().multiplyScalar(width * (0.72 + Math.sin(progress * Math.PI * 4) * 0.16))
 
-  const geometry = new THREE.ExtrudeGeometry(leaf, {
-    depth: 0.095,
-    steps: 1,
-    bevelEnabled: true,
-    bevelSegments: lowEnd ? 1 : 3,
-    bevelSize: 0.045,
-    bevelThickness: 0.045,
-    curveSegments: lowEnd ? 8 : 16,
-  })
-  geometry.center()
+    positions.push(
+      point.x + side.x, point.y + side.y, point.z + side.z,
+      point.x - side.x, point.y - side.y, point.z - side.z,
+    )
+    uvs.push(progress, 1, progress, 0)
+
+    if (index < segments) {
+      const offset = index * 2
+      indices.push(offset, offset + 1, offset + 2, offset + 1, offset + 3, offset + 2)
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3))
+  geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2))
+  geometry.setIndex(indices)
   geometry.computeVertexNormals()
   return geometry
 }
 
-function QuietBloomFallback({ gradientId }: { gradientId: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 560 560"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{
-        display: "block",
-        width: "min(92%, 620px)",
-        height: "auto",
-        filter: "drop-shadow(0 34px 48px rgba(32, 53, 42, 0.16))",
-      }}
-    >
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#C3AC69" />
-          <stop offset="0.5" stopColor="#907631" />
-          <stop offset="1" stopColor="#69531F" />
-        </linearGradient>
-      </defs>
-      <g transform="translate(280 280)">
-        {FALLBACK_PETALS.map((color, index) => (
-          <path
-            // The index is stable because the nine petals are a fixed brand mark.
-            key={index}
-            d="M0 -42 C-38 -56 -76 -104 -58 -158 C-48 -188 -18 -211 0 -224 C18 -211 48 -188 58 -158 C76 -104 38 -56 0 -42Z"
-            fill={color}
-            stroke="#907631"
-            strokeOpacity="0.3"
-            strokeWidth="2"
-            transform={`rotate(${index * 40})`}
-          />
-        ))}
-        <rect
-          x="-43"
-          y="-43"
-          width="86"
-          height="86"
-          rx="4"
-          fill={`url(#${gradientId})`}
-          transform="rotate(45)"
-        />
-        <rect
-          x="-28"
-          y="-28"
-          width="56"
-          height="56"
-          rx="3"
-          fill="#20352A"
-          transform="rotate(45)"
-        />
-      </g>
-    </svg>
-  )
-}
-
 /**
- * Seraphin's signature WebGL sculpture. It opens once, then rests with only a
- * restrained ambient drift. The SVG underneath is both the loading state and
- * the permanent fallback when WebGL is unavailable.
+ * A cinematic Three.js scene based on the approved Breathing Stone mock:
+ * carved stone, orbiting translucent silk, water ripples and pointer parallax.
  */
-export function QuietBloom({ ariaLabel = "Seraphin Quiet Bloom botanical sculpture" }: QuietBloomProps) {
+export function QuietBloom({ ariaLabel = "Floating Seraphin healing stone wrapped in moving golden silk" }: QuietBloomProps) {
   const hostRef = useRef<HTMLDivElement>(null)
-  const gradientId = `quiet-bloom-${useId().replaceAll(":", "")}`
   const [status, setStatus] = useState<"loading" | "ready" | "fallback">("loading")
 
   useEffect(() => {
@@ -139,17 +77,35 @@ export function QuietBloom({ ariaLabel = "Seraphin Quiet Bloom botanical sculptu
     let disposed = false
     let visible = true
     let contextLost = false
-    let lastFrame = 0
     let resizeObserver: ResizeObserver | undefined
     let intersectionObserver: IntersectionObserver | undefined
-    const resources = new Set<THREE.BufferGeometry | THREE.Material>()
-
+    let lastFrame = 0
+    let cleaned = false
+    const resources = new Set<THREE.BufferGeometry | THREE.Material | THREE.Texture>()
+    const cleanupTasks: Array<() => void> = []
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
     let reduceMotion = mediaQuery.matches
     const device = navigator as DeviceNavigator
     const lowEnd =
       (device.deviceMemory !== undefined && device.deviceMemory <= 2) ||
       (device.deviceMemory === undefined && device.hardwareConcurrency <= 4)
+
+    const teardown = () => {
+      if (cleaned) return
+      cleaned = true
+      disposed = true
+      window.cancelAnimationFrame(frameId)
+      window.cancelAnimationFrame(statusFrameId)
+      resizeObserver?.disconnect()
+      intersectionObserver?.disconnect()
+      cleanupTasks.splice(0).reverse().forEach((cleanup) => cleanup())
+      resources.forEach((resource) => resource.dispose())
+      const activeRenderer = renderer
+      renderer = undefined
+      activeRenderer?.dispose()
+      activeRenderer?.forceContextLoss()
+      activeRenderer?.domElement.remove()
+    }
 
     try {
       renderer = new THREE.WebGLRenderer({
@@ -158,135 +114,143 @@ export function QuietBloom({ ariaLabel = "Seraphin Quiet Bloom botanical sculptu
         powerPreference: lowEnd ? "low-power" : "high-performance",
       })
       renderer.setClearColor(0x000000, 0)
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowEnd ? 1 : 1.5))
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowEnd ? 1 : 1.6))
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
-      renderer.toneMappingExposure = 1.02
+      renderer.toneMappingExposure = 1.08
 
       const canvas = renderer.domElement
       canvas.setAttribute("aria-hidden", "true")
-      canvas.style.position = "absolute"
-      canvas.style.inset = "0"
-      canvas.style.width = "100%"
-      canvas.style.height = "100%"
-      canvas.style.display = "block"
-      canvas.style.zIndex = "1"
-      canvas.style.opacity = "0"
-      canvas.style.transition = reduceMotion ? "none" : "opacity 320ms ease"
+      canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;opacity:0;transition:opacity 500ms ease"
       host.appendChild(canvas)
 
       const scene = new THREE.Scene()
-      const camera = new THREE.PerspectiveCamera(31, 1, 0.1, 30)
-      camera.position.set(0, 0.05, 10)
-      camera.lookAt(0, 0, 0)
+      scene.fog = new THREE.FogExp2(COLORS.forest, 0.055)
+      const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 40)
+      camera.position.set(0, 0.15, 10.8)
+      camera.lookAt(0, -0.15, 0)
 
-      const bloom = new THREE.Group()
-      bloom.rotation.set(-0.12, -0.16, 0)
-      scene.add(bloom)
+      const sculpture = new THREE.Group()
+      sculpture.position.y = 0.12
+      scene.add(sculpture)
 
-      const leafGeometry = createLeafGeometry(lowEnd)
-      resources.add(leafGeometry)
-      const edgeGeometry = new THREE.EdgesGeometry(leafGeometry, 24)
-      resources.add(edgeGeometry)
-      const edgeMaterial = new THREE.LineBasicMaterial({
-        color: PALETTE.brass,
+      const backSilkMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0x526649,
+        emissive: 0x111d14,
+        emissiveIntensity: 0.2,
+        metalness: 0.12,
+        roughness: 0.34,
         transparent: true,
-        opacity: 0.24,
+        opacity: 0.13,
+        side: THREE.DoubleSide,
+        depthWrite: false,
       })
-      resources.add(edgeMaterial)
+      resources.add(backSilkMaterial)
 
-      const petalColors = [
-        PALETTE.forest,
-        PALETTE.olive,
-        PALETTE.cocoa,
-        PALETTE.parchment,
-        0x2e3c2c,
-        PALETTE.olive,
-        PALETTE.cocoa,
-        PALETTE.parchment,
-        PALETTE.forest,
-      ]
-      const petals: PetalState[] = []
+      const frontSilkMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xa18543,
+        emissive: 0x241b08,
+        emissiveIntensity: 0.24,
+        metalness: 0.2,
+        roughness: 0.27,
+        transparent: true,
+        opacity: 0.17,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      })
+      resources.add(frontSilkMaterial)
 
-      petalColors.forEach((color, index) => {
-        const angle = (index / petalColors.length) * Math.PI * 2
-        const radius = index % 2 === 0 ? 1.48 : 1.38
-        const pivot = new THREE.Group()
-        const material = new THREE.MeshStandardMaterial({
-          color,
-          metalness: color === PALETTE.parchment ? 0.1 : 0.04,
-          roughness: color === PALETTE.parchment ? 0.58 : 0.72,
-          transparent: true,
-          opacity: reduceMotion ? 1 : 0.2,
-        })
+      const backRibbonGeometry = createRibbonGeometry([
+        new THREE.Vector3(-3.3, 0.55, -0.45),
+        new THREE.Vector3(-1.25, 1.48, -0.72),
+        new THREE.Vector3(1.15, 1.22, -0.25),
+        new THREE.Vector3(3.15, 0.25, 0.2),
+        new THREE.Vector3(1.15, -0.65, 0.45),
+        new THREE.Vector3(-1.7, -0.55, -0.1),
+      ], 0.15, lowEnd ? 44 : 84)
+      resources.add(backRibbonGeometry)
+      const backRibbon = new THREE.Mesh(backRibbonGeometry, backSilkMaterial)
+      backRibbon.rotation.z = -0.12
+      sculpture.add(backRibbon)
+
+      const frontRibbonGeometry = createRibbonGeometry([
+        new THREE.Vector3(-3.15, -1.28, 0.55),
+        new THREE.Vector3(-1.2, -0.7, 0.95),
+        new THREE.Vector3(0.85, -0.42, 1.05),
+        new THREE.Vector3(3.15, -1.05, 0.45),
+        new THREE.Vector3(1.55, 0.15, -0.35),
+        new THREE.Vector3(-1.4, 0.1, -0.5),
+      ], 0.18, lowEnd ? 44 : 84)
+      resources.add(frontRibbonGeometry)
+      const frontRibbon = new THREE.Mesh(frontRibbonGeometry, frontSilkMaterial)
+      frontRibbon.rotation.z = 0.08
+      sculpture.add(frontRibbon)
+
+      const waterMaterial = new THREE.MeshPhysicalMaterial({ color: 0x10251d, roughness: 0.25, metalness: 0.2, transparent: true, opacity: 0.52 })
+      resources.add(waterMaterial)
+      const waterGeometry = new THREE.CircleGeometry(5.8, lowEnd ? 40 : 80)
+      resources.add(waterGeometry)
+      const water = new THREE.Mesh(waterGeometry, waterMaterial)
+      water.rotation.x = -Math.PI / 2
+      water.position.y = -2.25
+      scene.add(water)
+
+      const rippleMaterial = new THREE.MeshBasicMaterial({ color: COLORS.brassLight, transparent: true, opacity: 0.38, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })
+      resources.add(rippleMaterial)
+      const ripples: Ripple[] = Array.from({ length: 4 }, (_, index) => {
+        const geometry = new THREE.RingGeometry(0.72, 0.735, lowEnd ? 46 : 72)
+        resources.add(geometry)
+        const material = rippleMaterial.clone()
         resources.add(material)
-
-        const leaf = new THREE.Mesh(leafGeometry, material)
-        const edge = new THREE.LineSegments(edgeGeometry, edgeMaterial)
-        leaf.position.y = radius
-        edge.position.y = radius
-        leaf.position.z = index % 2 === 0 ? 0.06 : -0.04
-        edge.position.z = leaf.position.z + 0.055
-
-        pivot.rotation.z = angle
-        pivot.rotation.x = index % 2 === 0 ? -0.035 : 0.025
-        if (!reduceMotion) {
-          leaf.position.y = radius * 0.54
-          edge.position.y = radius * 0.54
-          pivot.scale.set(0.76, 0.22, 0.74)
-        }
-        pivot.add(leaf, edge)
-        bloom.add(pivot)
-        petals.push({ pivot, material, radius, delay: index * 22 })
+        const mesh = new THREE.Mesh(geometry, material)
+        mesh.rotation.x = -Math.PI / 2
+        mesh.position.set(0, -2.2 + index * 0.004, 0.2)
+        scene.add(mesh)
+        return { mesh, phase: index / 4 }
       })
 
-      const diamondShape = new THREE.Shape()
-      diamondShape.moveTo(0, 0.61)
-      diamondShape.lineTo(0.61, 0)
-      diamondShape.lineTo(0, -0.61)
-      diamondShape.lineTo(-0.61, 0)
-      diamondShape.closePath()
-      const diamondGeometry = new THREE.ExtrudeGeometry(diamondShape, {
-        depth: 0.16,
-        bevelEnabled: true,
-        bevelSegments: lowEnd ? 1 : 3,
-        bevelSize: 0.045,
-        bevelThickness: 0.04,
-      })
-      diamondGeometry.center()
-      resources.add(diamondGeometry)
-      const brassMaterial = new THREE.MeshStandardMaterial({
-        color: PALETTE.brass,
-        metalness: 0.52,
-        roughness: 0.38,
-      })
-      resources.add(brassMaterial)
-      const diamond = new THREE.Mesh(diamondGeometry, brassMaterial)
-      diamond.position.z = 0.14
-      if (!reduceMotion) diamond.scale.setScalar(0.62)
-      bloom.add(diamond)
+      const particleGeometry = new THREE.BufferGeometry()
+      const particleCount = lowEnd ? 42 : 90
+      const particlePositions = new Float32Array(particleCount * 3)
+      for (let index = 0; index < particleCount; index += 1) {
+        const seed = index * 19.37
+        particlePositions[index * 3] = Math.sin(seed * 1.7) * 4.5
+        particlePositions[index * 3 + 1] = ((index * 0.73) % 5.5) - 2.2
+        particlePositions[index * 3 + 2] = Math.cos(seed * 0.81) * 2.2 - 0.6
+      }
+      particleGeometry.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3))
+      resources.add(particleGeometry)
+      const particleMaterial = new THREE.PointsMaterial({ color: COLORS.brassLight, size: lowEnd ? 0.022 : 0.028, transparent: true, opacity: 0.46, depthWrite: false, blending: THREE.AdditiveBlending })
+      resources.add(particleMaterial)
+      const particles = new THREE.Points(particleGeometry, particleMaterial)
+      scene.add(particles)
 
-      const insetGeometry = new THREE.OctahedronGeometry(0.37, lowEnd ? 0 : 1)
-      resources.add(insetGeometry)
-      const insetMaterial = new THREE.MeshStandardMaterial({
-        color: PALETTE.forest,
-        metalness: 0.08,
-        roughness: 0.64,
-      })
-      resources.add(insetMaterial)
-      const inset = new THREE.Mesh(insetGeometry, insetMaterial)
-      inset.scale.set(reduceMotion ? 1 : 0.62, reduceMotion ? 1 : 0.62, reduceMotion ? 0.24 : 0.1488)
-      inset.position.z = 0.32
-      inset.rotation.z = Math.PI / 4
-      bloom.add(inset)
+      const key = new THREE.SpotLight(COLORS.ivory, 48, 22, Math.PI / 5, 0.7, 1.3)
+      key.position.set(-4.2, 5.5, 7)
+      key.target.position.set(0, 0, 0)
+      scene.add(key, key.target)
+      const rim = new THREE.PointLight(COLORS.brassLight, 20, 11, 1.4)
+      rim.position.set(3.7, 0.8, 2.2)
+      scene.add(rim)
+      const underGlow = new THREE.PointLight(COLORS.brass, 11, 7, 1.5)
+      underGlow.position.set(0, -2, 1.1)
+      scene.add(underGlow)
+      scene.add(new THREE.HemisphereLight(0x93a08e, 0x06100c, 3.1))
 
-      const warmKey = new THREE.DirectionalLight(PALETTE.ivory, 3.1)
-      warmKey.position.set(-3.8, 4.8, 6)
-      scene.add(warmKey)
-      const brassRim = new THREE.DirectionalLight(0xc3ac69, 2.1)
-      brassRim.position.set(4.6, -2.4, 4.2)
-      scene.add(brassRim)
-      scene.add(new THREE.HemisphereLight(PALETTE.parchment, PALETTE.forest, 1.45))
+      const pointer = new THREE.Vector2()
+      const pointerTarget = new THREE.Vector2()
+      const handlePointerMove = (event: PointerEvent) => {
+        const rect = host.getBoundingClientRect()
+        pointerTarget.set(
+          THREE.MathUtils.clamp(((event.clientX - rect.left) / rect.width - 0.5) * 2, -1, 1),
+          THREE.MathUtils.clamp(((event.clientY - rect.top) / rect.height - 0.5) * 2, -1, 1),
+        )
+      }
+      const resetPointer = () => pointerTarget.set(0, 0)
+      host.addEventListener("pointermove", handlePointerMove)
+      cleanupTasks.push(() => host.removeEventListener("pointermove", handlePointerMove))
+      host.addEventListener("pointerleave", resetPointer)
+      cleanupTasks.push(() => host.removeEventListener("pointerleave", resetPointer))
 
       const resize = () => {
         if (!renderer || disposed) return
@@ -294,11 +258,7 @@ export function QuietBloom({ ariaLabel = "Seraphin Quiet Bloom botanical sculptu
         if (width < 1 || height < 1) return
         renderer.setSize(width, height, false)
         camera.aspect = width / height
-        const halfBloomSpan = 2.62
-        const halfVerticalFov = THREE.MathUtils.degToRad(camera.fov * 0.5)
-        const distanceForHeight = halfBloomSpan / Math.tan(halfVerticalFov)
-        const distanceForWidth = distanceForHeight / camera.aspect
-        camera.position.z = Math.max(distanceForHeight, distanceForWidth) * 1.04
+        camera.fov = width < 680 ? 43 : 34
         camera.updateProjectionMatrix()
         renderer.render(scene, camera)
       }
@@ -307,83 +267,75 @@ export function QuietBloom({ ariaLabel = "Seraphin Quiet Bloom botanical sculptu
       resize()
 
       const startedAt = performance.now()
-      const openingDuration = 900
-      const targetFrameGap = lowEnd ? 1000 / 30 : 0
+      const entranceDuration = 1850
+      const frameGap = lowEnd ? 1000 / 30 : 0
 
       const renderFrame = (now: number) => {
-        if (disposed || contextLost || !renderer) return
-        if (!visible) return
-        if (targetFrameGap && now - lastFrame < targetFrameGap) {
+        if (disposed || contextLost || !renderer || !visible) return
+        if (frameGap && now - lastFrame < frameGap) {
           frameId = window.requestAnimationFrame(renderFrame)
           return
         }
         lastFrame = now
-
         const elapsed = now - startedAt
-        petals.forEach(({ pivot, material, radius, delay }) => {
-          const progress = reduceMotion
-            ? 1
-            : THREE.MathUtils.clamp((elapsed - delay) / (openingDuration - delay), 0, 1)
-          const eased = easeOutQuint(progress)
-          const currentRadius = THREE.MathUtils.lerp(radius * 0.54, radius, eased)
-          pivot.children.forEach((child) => {
-            child.position.y = currentRadius
-          })
-          pivot.scale.set(
-            THREE.MathUtils.lerp(0.76, 1, eased),
-            THREE.MathUtils.lerp(0.22, 1, eased),
-            THREE.MathUtils.lerp(0.74, 1, eased),
-          )
-          material.opacity = THREE.MathUtils.lerp(0.2, 1, eased)
-        })
+        const progress = reduceMotion ? 1 : easeOutExpo(THREE.MathUtils.clamp(elapsed / entranceDuration, 0, 1))
+        const time = elapsed / 1000
 
-        const centerProgress = reduceMotion
-          ? 1
-          : easeOutQuint(THREE.MathUtils.clamp(elapsed / openingDuration, 0, 1))
-        const centerScale = THREE.MathUtils.lerp(0.62, 1, centerProgress)
-        diamond.scale.setScalar(centerScale)
-        inset.scale.set(centerScale, centerScale, 0.24 * centerScale)
+        sculpture.scale.setScalar(THREE.MathUtils.lerp(0.58, 1, progress))
+        sculpture.rotation.y = THREE.MathUtils.lerp(-1.05, 0.05, progress)
+        sculpture.rotation.z = THREE.MathUtils.lerp(-0.16, 0, progress)
+        sculpture.position.y = THREE.MathUtils.lerp(-0.35, 0.12, progress)
+        camera.position.z = THREE.MathUtils.lerp(12.8, 8.7, progress)
 
-        if (!reduceMotion && elapsed > openingDuration) {
-          const ambientTime = elapsed - openingDuration
-          bloom.rotation.z = Math.sin(ambientTime * (Math.PI * 2) / 12000) * 0.026
-          bloom.rotation.y = -0.16 + Math.sin(ambientTime * (Math.PI * 2) / 9000) * 0.022
-          bloom.rotation.x = -0.12 + Math.cos(ambientTime * (Math.PI * 2) / 11000) * 0.011
-          const breath = 1 + Math.sin(ambientTime * (Math.PI * 2) / 10000) * 0.006
-          bloom.scale.setScalar(breath)
+        if (!reduceMotion && progress > 0.98) {
+          pointer.lerp(pointerTarget, 0.04)
+          const ambient = time - entranceDuration / 1000
+          sculpture.position.y = 0.12 + Math.sin(ambient * 0.85) * 0.1
+          backRibbon.rotation.y = ambient * 0.17 + pointer.x * 0.09
+          backRibbon.rotation.z = -0.12 + Math.sin(ambient * 0.55) * 0.1
+          frontRibbon.rotation.y = -ambient * 0.13 - pointer.x * 0.08
+          frontRibbon.rotation.z = 0.08 + Math.cos(ambient * 0.48) * 0.08
+          particles.rotation.y = ambient * 0.035
+          particles.position.y = Math.sin(ambient * 0.24) * 0.12
+          camera.position.x = pointer.x * 0.22
+          camera.position.y = 0.15 - pointer.y * 0.13
         }
+
+        ripples.forEach(({ mesh, phase }) => {
+          const rippleProgress = reduceMotion ? phase * 0.7 + 0.18 : (time * 0.19 + phase) % 1
+          const scale = 0.75 + rippleProgress * 4.8
+          mesh.scale.setScalar(scale)
+          mesh.material.opacity = reduceMotion ? 0.16 : Math.sin(rippleProgress * Math.PI) * 0.34
+        })
 
         renderer.render(scene, camera)
         if (!reduceMotion) frameId = window.requestAnimationFrame(renderFrame)
       }
 
-      const onContextLost = (event: Event) => {
+      const handleContextLost = (event: Event) => {
         event.preventDefault()
         contextLost = true
         canvas.style.opacity = "0"
         window.cancelAnimationFrame(frameId)
         if (!disposed) setStatus("fallback")
       }
-      canvas.addEventListener("webglcontextlost", onContextLost, false)
-
-      const onMotionPreferenceChange = (event: MediaQueryListEvent) => {
+      const handleMotionChange = (event: MediaQueryListEvent) => {
         reduceMotion = event.matches
-        canvas.style.transition = reduceMotion ? "none" : "opacity 320ms ease"
         window.cancelAnimationFrame(frameId)
         frameId = window.requestAnimationFrame(renderFrame)
       }
-      mediaQuery.addEventListener("change", onMotionPreferenceChange)
+      canvas.addEventListener("webglcontextlost", handleContextLost, false)
+      cleanupTasks.push(() => canvas.removeEventListener("webglcontextlost", handleContextLost))
+      mediaQuery.addEventListener("change", handleMotionChange)
+      cleanupTasks.push(() => mediaQuery.removeEventListener("change", handleMotionChange))
 
-      intersectionObserver = new IntersectionObserver(
-        ([entry]) => {
-          visible = entry?.isIntersecting ?? true
-          if (visible && renderer && !contextLost) {
-            window.cancelAnimationFrame(frameId)
-            frameId = window.requestAnimationFrame(renderFrame)
-          }
-        },
-        { rootMargin: "120px" },
-      )
+      intersectionObserver = new IntersectionObserver(([entry]) => {
+        visible = entry?.isIntersecting ?? true
+        if (visible && renderer && !contextLost) {
+          window.cancelAnimationFrame(frameId)
+          frameId = window.requestAnimationFrame(renderFrame)
+        }
+      }, { rootMargin: "160px" })
       intersectionObserver.observe(host)
 
       renderer.render(scene, camera)
@@ -393,61 +345,18 @@ export function QuietBloom({ ariaLabel = "Seraphin Quiet Bloom botanical sculptu
       })
       frameId = window.requestAnimationFrame(renderFrame)
 
-      return () => {
-        disposed = true
-        window.cancelAnimationFrame(frameId)
-        window.cancelAnimationFrame(statusFrameId)
-        resizeObserver?.disconnect()
-        intersectionObserver?.disconnect()
-        canvas.removeEventListener("webglcontextlost", onContextLost)
-        mediaQuery.removeEventListener("change", onMotionPreferenceChange)
-        resources.forEach((resource) => resource.dispose())
-        renderer?.dispose()
-        renderer?.forceContextLoss()
-        canvas.remove()
-      }
+      return teardown
     } catch {
-      if (!disposed) setStatus("fallback")
-      renderer?.dispose()
-      renderer?.domElement.remove()
-      resources.forEach((resource) => resource.dispose())
+      teardown()
+      const fallbackFrame = window.requestAnimationFrame(() => {
+        if (host.isConnected) setStatus("fallback")
+      })
+      return () => window.cancelAnimationFrame(fallbackFrame)
     }
   }, [])
 
   return (
-    <div
-      ref={hostRef}
-      role="img"
-      aria-label={ariaLabel}
-      data-webgl-status={status}
-      style={{
-        position: "relative",
-        isolation: "isolate",
-        display: "grid",
-        placeItems: "center",
-        width: "100%",
-        height: "100%",
-        minHeight: "clamp(360px, 58vw, 700px)",
-        overflow: "hidden",
-        background:
-          "radial-gradient(circle at 50% 48%, rgba(211, 198, 165, 0.32) 0%, rgba(250, 243, 227, 0) 64%)",
-      }}
-    >
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0,
-          display: "grid",
-          placeItems: "center",
-          opacity: status === "ready" ? 0 : 1,
-          pointerEvents: "none",
-        }}
-      >
-        <QuietBloomFallback gradientId={gradientId} />
-      </div>
-    </div>
+    <div ref={hostRef} className="stone-silk-scene" role="img" aria-label={ariaLabel} data-webgl-status={status}></div>
   )
 }
 
