@@ -6,6 +6,7 @@ export default defineConfig({
   base: "./",
   plugins: [react(), sites()],
   build: {
+    outDir: "dist/client",
     target: "es2022",
     cssCodeSplit: true,
     sourcemap: true,
