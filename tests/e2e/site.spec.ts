@@ -30,10 +30,21 @@ for (const concept of concepts) {
   })
 }
 
-test("living lotus changes state when opened", async ({ page }) => {
+test("living lotus changes its WebGL pose when opened", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
   await page.goto("?concept=lotus")
+  const scene = page.locator(".concept-scene--lotus")
+  await expect(scene).toHaveAttribute("data-scene-ready", "true")
+  const canvas = scene.locator("canvas")
+  await page.waitForTimeout(500)
+  const before = await canvas.screenshot({ animations: "allow" })
   await page.getByRole("button", { name: "Open the lotus" }).click()
   await expect(page.locator(".concept--lotus")).toHaveClass(/is-awake/)
+  await expect(scene).toHaveAttribute("data-scene-active", "true")
+  await page.waitForTimeout(900)
+  const after = await canvas.screenshot({ animations: "allow" })
+  const changedBytes = before.reduce((total, byte, index) => total + Number(byte !== after[index]), 0)
+  expect(changedBytes).toBeGreaterThan(1000)
 })
 
 test("threshold opens its curtains", async ({ page }) => {

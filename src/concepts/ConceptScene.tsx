@@ -22,8 +22,16 @@ function createPetalGeometry(lowEnd: boolean) {
   return geometry
 }
 
-export function ConceptScene({ kind }: { kind: SceneKind }) {
+export function ConceptScene({ kind, active = false }: { kind: SceneKind; active?: boolean }) {
   const hostRef = useRef<HTMLDivElement>(null)
+  const activeRef = useRef(active)
+  const renderActiveRef = useRef<(() => void) | null>(null)
+
+  useEffect(() => {
+    activeRef.current = active
+    if (hostRef.current) hostRef.current.dataset.sceneActive = String(active)
+    renderActiveRef.current?.()
+  }, [active])
 
   useEffect(() => {
     const host = hostRef.current
@@ -88,6 +96,7 @@ export function ConceptScene({ kind }: { kind: SceneKind }) {
       cleanups.push(() => host.removeEventListener("pointerleave", onPointerLeave))
 
       const lotusPetals: THREE.Group[] = []
+      let lotusCenter: THREE.Mesh | undefined
       const thresholdFrames: THREE.LineSegments[] = []
       let oracleParticles: THREE.Points | undefined
       const oracleObjects: THREE.Mesh[] = []
@@ -107,6 +116,7 @@ export function ConceptScene({ kind }: { kind: SceneKind }) {
           petal.position.y = index % 2 === 0 ? 1.32 : 1.08
           petal.rotation.x = index % 2 === 0 ? -0.18 : 0.06
           pivot.rotation.z = angle
+          pivot.userData.baseAngle = angle
           pivot.add(petal)
           root.add(pivot)
           lotusPetals.push(pivot)
@@ -115,7 +125,8 @@ export function ConceptScene({ kind }: { kind: SceneKind }) {
         const centerMaterial = new THREE.MeshStandardMaterial({ color: 0xf4dfaa, emissive: 0xc28f35, emissiveIntensity: 0.9, metalness: 0.25, roughness: 0.28 })
         resources.add(centerGeometry)
         resources.add(centerMaterial)
-        root.add(new THREE.Mesh(centerGeometry, centerMaterial))
+        lotusCenter = new THREE.Mesh(centerGeometry, centerMaterial)
+        root.add(lotusCenter)
       }
 
       if (kind === "threshold") {
@@ -176,6 +187,7 @@ export function ConceptScene({ kind }: { kind: SceneKind }) {
           resources.add(geometry)
           const mesh = new THREE.Mesh(geometry, objectMaterial)
           mesh.position.set(locations[index][0], locations[index][1], locations[index][2])
+          mesh.userData.baseY = locations[index][1]
           root.add(mesh)
           oracleObjects.push(mesh)
         })
@@ -203,6 +215,8 @@ export function ConceptScene({ kind }: { kind: SceneKind }) {
       resize()
 
       const started = performance.now()
+      let lastPoseTime = started
+      let openness = activeRef.current ? 1 : 0
       const render = (now: number) => {
         if (disposed || !renderer || !visible) return
         if (lowEnd && now - lastFrame < 1000 / 30) {
@@ -211,18 +225,27 @@ export function ConceptScene({ kind }: { kind: SceneKind }) {
         }
         lastFrame = now
         const time = (now - started) / 1000
+        const delta = Math.min((now - lastPoseTime) / 1000, 0.1)
+        lastPoseTime = now
         pointer.lerp(pointerTarget, 0.035)
         root.rotation.y = pointer.x * 0.08
         root.rotation.x = pointer.y * 0.035
 
+        const opennessTarget = activeRef.current ? 1 : 0
+        openness = reduceMotion ? opennessTarget : THREE.MathUtils.lerp(openness, opennessTarget, 1 - Math.exp(-delta * 6))
+        lotusPetals.forEach((petal, index) => {
+          const ambientTilt = reduceMotion ? 0 : Math.sin(time * 0.72 + index * 0.55) * 0.13
+          const ambientTwist = reduceMotion ? 0 : Math.sin(time * 0.32 + index) * (openness ? 0.06 : 0.018)
+          petal.rotation.x = -0.16 + openness * 0.52 + ambientTilt
+          petal.rotation.z = petal.userData.baseAngle + ambientTwist
+        })
+        if (lotusCenter) lotusCenter.scale.setScalar(1 + openness * 0.28)
+
         if (!reduceMotion) {
-          lotusPetals.forEach((petal, index) => {
-            petal.rotation.x = -0.16 + Math.sin(time * 0.72 + index * 0.55) * 0.13
-            petal.rotation.z += index % 2 ? 0.0007 : -0.00045
-          })
           thresholdFrames.forEach((portal, index) => {
-            portal.position.z += 0.006 + index * 0.0004
-            if (portal.position.z > 1.2) portal.position.z -= 10.8
+            const start = -index * 1.35
+            const progress = ((start + 9.6 + time * (0.36 + index * 0.024)) % 10.8 + 10.8) % 10.8
+            portal.position.z = -9.6 + progress
             portal.rotation.z = Math.sin(time * 0.2 + index) * 0.006
           })
           if (oracleParticles) {
@@ -230,9 +253,9 @@ export function ConceptScene({ kind }: { kind: SceneKind }) {
             oracleParticles.position.y = Math.sin(time * 0.65) * 0.06
           }
           oracleObjects.forEach((object, index) => {
-            object.rotation.x += 0.004 + index * 0.001
-            object.rotation.y += 0.006 - index * 0.0008
-            object.position.y += Math.sin(time * 0.8 + index * 2) * 0.0007
+            object.rotation.x = time * (0.24 + index * 0.06)
+            object.rotation.y = time * (0.36 - index * 0.048)
+            object.position.y = object.userData.baseY + Math.sin(time * 0.8 + index * 2) * 0.08
           })
           camera.position.x = pointer.x * 0.16
           camera.position.y = -pointer.y * 0.1
@@ -240,6 +263,11 @@ export function ConceptScene({ kind }: { kind: SceneKind }) {
 
         renderer.render(scene, camera)
         if (!reduceMotion) frame = window.requestAnimationFrame(render)
+      }
+
+      if (reduceMotion) {
+        renderActiveRef.current = () => render(performance.now())
+        cleanups.push(() => { renderActiveRef.current = null })
       }
 
       intersectionObserver = new IntersectionObserver(([entry]) => {
@@ -251,6 +279,7 @@ export function ConceptScene({ kind }: { kind: SceneKind }) {
       }, { rootMargin: "100px" })
       intersectionObserver.observe(host)
       host.dataset.sceneReady = "true"
+      host.dataset.sceneActive = String(activeRef.current)
       frame = window.requestAnimationFrame(render)
       return dispose
     } catch {
@@ -262,4 +291,3 @@ export function ConceptScene({ kind }: { kind: SceneKind }) {
 
   return <div ref={hostRef} className={`concept-scene concept-scene--${kind}`} aria-hidden="true"></div>
 }
-

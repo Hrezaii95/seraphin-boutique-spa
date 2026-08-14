@@ -1,6 +1,11 @@
-import { useEffect, useState, type ReactNode } from "react"
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react"
 import { motion, useReducedMotion } from "motion/react"
-import { ConceptScene } from "./ConceptScene"
+
+const ConceptScene = lazy(() => import("./ConceptScene").then((module) => ({ default: module.ConceptScene })))
+
+function Scene(props: { kind: "lotus" | "threshold" | "oracle"; active?: boolean }) {
+  return <Suspense fallback={<div className={`concept-scene concept-scene--${props.kind}`} aria-hidden="true" data-scene-ready="loading" />}><ConceptScene {...props} /></Suspense>
+}
 
 const bookingUrl = "https://emly.am/b/seraphin"
 
@@ -24,7 +29,7 @@ function BrandHeader({ current }: { current?: ConceptId }) {
         <span className="lab-brand__word">Seraphin</span>
       </a>
       <nav className="lab-concept-nav" aria-label="Landing concepts">
-        {concepts.map((concept) => <a key={concept.id} aria-current={current === concept.id ? "page" : undefined} href={href(concept.id)}><span>{concept.number}</span><em>{concept.name}</em></a>)}
+        {concepts.map((concept) => <a key={concept.id} aria-label={`${concept.number} — ${concept.name}`} aria-current={current === concept.id ? "page" : undefined} href={href(concept.id)}><span>{concept.number}</span><em>{concept.name}</em></a>)}
       </nav>
       <a className="lab-book" href={bookingUrl} target="_blank" rel="noreferrer">Book now</a>
     </header>
@@ -50,7 +55,7 @@ function LivingLotus() {
       <main className="concept-hero" id="main">
         <div className="concept-plate concept-plate--lotus" aria-hidden="true"></div>
         <div className="concept-vignette" aria-hidden="true"></div>
-        <ConceptScene kind="lotus" />
+        <Scene kind="lotus" active={open} />
         <div className="lotus-halo" aria-hidden="true"><i></i><i></i><i></i></div>
         <div className="concept-copy concept-copy--left">
           <Entrance delay={0.1}><p className="concept-kicker">01 · The living symbol</p></Entrance>
@@ -76,7 +81,7 @@ function Threshold() {
       <main className="concept-hero" id="main">
         <div className="concept-plate concept-plate--threshold" aria-hidden="true"></div>
         <div className="concept-vignette" aria-hidden="true"></div>
-        <ConceptScene kind="threshold" />
+        <Scene kind="threshold" />
         <div className="threshold-curtain threshold-curtain--left" aria-hidden="true"></div>
         <div className="threshold-curtain threshold-curtain--right" aria-hidden="true"></div>
         <div className="concept-copy concept-copy--threshold">
@@ -105,6 +110,7 @@ type OracleChoice = keyof typeof oracleChoices
 
 function RitualOracle() {
   const [choice, setChoice] = useState<OracleChoice>("shoulders")
+  const reduce = useReducedMotion()
   const selected = oracleChoices[choice]
   return (
     <div className={`concept concept--oracle oracle-focus--${choice}`}>
@@ -112,7 +118,7 @@ function RitualOracle() {
       <main className="concept-hero" id="main">
         <div className="concept-plate concept-plate--oracle" aria-hidden="true"></div>
         <div className="concept-vignette" aria-hidden="true"></div>
-        <ConceptScene kind="oracle" />
+        <Scene kind="oracle" />
         <div className="oracle-pulse" aria-hidden="true"><i></i><i></i><i></i></div>
         <div className="concept-copy concept-copy--right">
           <Entrance delay={0.1}><p className="concept-kicker">03 · The ritual oracle</p></Entrance>
@@ -122,7 +128,7 @@ function RitualOracle() {
             <div className="oracle-choices" role="group" aria-label="Choose where you feel tension">
               {(Object.keys(oracleChoices) as OracleChoice[]).map((id) => <button key={id} className="oracle-choice" type="button" aria-pressed={choice === id} onClick={() => setChoice(id)}>{oracleChoices[id].label}</button>)}
             </div>
-            <motion.div className="oracle-result" key={choice} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} aria-live="polite">
+            <motion.div className="oracle-result" key={choice} initial={{ opacity: reduce ? 1 : 0, y: reduce ? 0 : 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduce ? 0.1 : 0.35, ease: [0.22, 1, 0.36, 1] }} aria-live="polite">
               <div><small>Recommended now</small><strong>{selected.result}</strong><p>{selected.detail} · {selected.note}</p></div><a href={bookingUrl} target="_blank" rel="noreferrer" aria-label={`Book ${selected.result}`}>↗</a>
             </motion.div>
           </Entrance>
@@ -134,13 +140,14 @@ function RitualOracle() {
 }
 
 function ConceptIndex() {
+  const reduce = useReducedMotion()
   return (
     <div className="lab-index">
       <BrandHeader />
       <main id="main">
         <Entrance delay={0.08} className="lab-index__intro"><div><p className="concept-kicker">Seraphin · landing exploration</p><h1>Three hooks.<br />Three different contracts.</h1></div><p>The production site remains untouched. Open each direction full-screen and judge the first ten seconds.</p></Entrance>
         <div className="lab-index__grid">
-          {concepts.map((concept, index) => <motion.a key={concept.id} href={href(concept.id)} className={`lab-card lab-card--${concept.id}`} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + index * 0.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}><span className="lab-card__number">{concept.number}</span><h2>{concept.name}</h2><p>{concept.thesis}</p><b className="lab-card__open">Open concept ↗</b></motion.a>)}
+          {concepts.map((concept, index) => <motion.a key={concept.id} href={href(concept.id)} className={`lab-card lab-card--${concept.id}`} initial={{ opacity: reduce ? 1 : 0, y: reduce ? 0 : 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduce ? 0 : 0.2 + index * 0.1, duration: reduce ? 0.1 : 0.7, ease: [0.22, 1, 0.36, 1] }}><span className="lab-card__number">{concept.number}</span><h2>{concept.name}</h2><p>{concept.thesis}</p><b className="lab-card__open">Open concept ↗</b></motion.a>)}
         </div>
       </main>
     </div>
