@@ -7,7 +7,7 @@ export default defineConfig({
   workers: 2,
   reporter: [["line"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   use: {
-    baseURL: "http://127.0.0.1:4173/seraphin-boutique-spa/",
+    baseURL: "http://127.0.0.1:4181/",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     launchOptions: process.platform === "win32"
@@ -16,9 +16,9 @@ export default defineConfig({
   },
   projects: [{ name: "desktop", use: { ...devices["Desktop Chrome"] } }, { name: "mobile", use: { ...devices["Pixel 5"] } }],
   webServer: {
-    command: "npm run dev -- --host 127.0.0.1 --port 4173",
-    url: "http://127.0.0.1:4173/seraphin-boutique-spa/",
-    reuseExistingServer: true,
+    command: "npm run dev -- --host 127.0.0.1 --port 4181 --strictPort",
+    url: "http://127.0.0.1:4181/",
+    reuseExistingServer: false,
     timeout: 120000,
   },
 })

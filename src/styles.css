@@ -60,7 +60,7 @@ a:hover .link-arrow { transform: translate(3px, -3px); }
 .hero { position: relative; display: grid; grid-template-columns: minmax(360px, .82fr) 1.18fr; min-height: max(780px, 100svh); padding: 90px 0 72px 7vw; overflow: hidden; color: var(--ivory); background: radial-gradient(circle at 75% 38%, #21382c 0, #0e2018 31%, #07130e 66%, #030806 100%); }
 .hero::before { content: ""; position: absolute; z-index: 2; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgb(2 7 5 / 82%) 0, rgb(2 8 5 / 58%) 35%, transparent 67%), linear-gradient(180deg, rgb(2 6 4 / 15%), transparent 58%, rgb(2 7 5 / 72%)); }
 .hero::after { content: ""; position: absolute; z-index: 4; inset: 0; pointer-events: none; opacity: .11; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E"); mix-blend-mode: soft-light; }
-.hero-cinematic-bg { position: absolute; z-index: 0; inset: -2%; overflow: hidden; pointer-events: none; background: linear-gradient(90deg, rgb(2 8 5 / 74%) 0, rgb(2 8 5 / 32%) 38%, transparent 68%), url("../images/hero-breathing-stone-v2.webp") center / cover no-repeat; transform: scale(1.025); animation: hero-dolly 12s ease-in-out infinite alternate; will-change: transform; }
+.hero-cinematic-bg { position: absolute; z-index: 0; inset: -2%; overflow: hidden; pointer-events: none; background: linear-gradient(90deg, rgb(2 8 5 / 74%) 0, rgb(2 8 5 / 32%) 38%, transparent 68%), url("/images/hero-breathing-stone-v2.webp") center / cover no-repeat; transform: scale(1.025); animation: hero-dolly 12s ease-in-out infinite alternate; will-change: transform; }
 .hero-cinematic-bg::before { content: ""; position: absolute; right: -4%; bottom: -18%; width: 74%; height: 48%; background: radial-gradient(ellipse, rgb(203 164 78 / 28%), rgb(19 47 35 / 10%) 40%, transparent 72%); filter: blur(18px); animation: water-breathe 5.6s ease-in-out infinite; }
 .hero-cinematic-bg i { position: absolute; top: -28%; width: 14%; height: 115%; opacity: .12; background: linear-gradient(180deg, rgb(249 222 159 / 82%), transparent 72%); filter: blur(22px); transform: rotate(18deg); transform-origin: top; animation: light-drift 8s ease-in-out infinite alternate; }
 .hero-cinematic-bg i:nth-child(1) { right: 34%; }
@@ -165,7 +165,7 @@ a:hover .link-arrow { transform: translate(3px, -3px); }
 .gallery-grid figcaption span { color: var(--brass-bright); font-size: .6rem; }
 
 .couples-section { display: grid; grid-template-columns: 1.05fr .95fr; min-height: 760px; color: var(--ivory); background: var(--cocoa); }
-.couples-image { min-height: 580px; background: linear-gradient(90deg, transparent 75%, rgb(80 50 36 / 70%)), linear-gradient(0deg, rgb(25 15 11 / 35%), transparent 50%), url("../images/herbal-compress.jpg") center/cover; }
+.couples-image { min-height: 580px; background: linear-gradient(90deg, transparent 75%, rgb(80 50 36 / 70%)), linear-gradient(0deg, rgb(25 15 11 / 35%), transparent 50%), url("/images/herbal-compress.jpg") center/cover; }
 .couples-copy { align-self: center; max-width: 680px; padding: 90px clamp(42px, 8vw, 130px); }
 .couples-copy .eyebrow { color: var(--linen); }
 .couples-copy h2 { color: var(--ivory); }
@@ -261,7 +261,7 @@ a:hover .link-arrow { transform: translate(3px, -3px); }
   .gallery-grid figure:nth-child(2) { grid-column: auto; }
   .gallery-grid figcaption { padding: 20px 14px; }
   .couples-section { grid-template-columns: 1fr; min-height: 0; }
-  .couples-image { min-height: 540px; background-image: linear-gradient(0deg, var(--cocoa), transparent 30%), url("../images/herbal-compress.jpg"); }
+  .couples-image { min-height: 540px; background-image: linear-gradient(0deg, var(--cocoa), transparent 30%), url("/images/herbal-compress.jpg"); }
   .couples-copy { padding: 70px 22px 90px; }
   .standards-list { margin-top: 54px; }
   .standard-item { grid-template-columns: 42px 1fr; gap: 12px; }

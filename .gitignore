@@ -2,6 +2,8 @@ node_modules/
 dist/
 playwright-report/
 test-results/
+artifacts/
 *.local
 .DS_Store
 Thumbs.db
+*.blend1

@@ -1,10 +1,10 @@
 {
-  "name": "Seraphin Boutique Spa",
+  "name": "Seraphin — The Passage",
   "short_name": "Seraphin",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
-  "background_color": "#faf3e3",
-  "theme_color": "#20352a",
+  "background_color": "#06100c",
+  "theme_color": "#06100c",
   "icons": []
 }

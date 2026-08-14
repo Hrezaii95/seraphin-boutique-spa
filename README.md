@@ -1,13 +1,20 @@
-# Seraphin Boutique Spa website
+# Seraphin — The Passage
 
-Premium multilingual website for Seraphin Boutique Spa in Yerevan. The experience combines a cinematic Breathing Stone hero with live WebGL silk, water and pointer motion, a complete price catalogue, a ritual finder, real venue imagery and direct Emly/WhatsApp booking.
+An immersive, multilingual 3D landing experience for Seraphin Boutique Spa in Yerevan. Visitors guide the camera through a sculpted Quiet Bloom, warm stone, botanical oil, linen and an abstract private sanctuary before reaching the complete treatment catalogue and booking flow.
 
-## Public surfaces
+## Experience
 
-- GitHub Pages: `https://hrezaii95.github.io/seraphin-boutique-spa/`
-- Booking: `https://emly.am/b/seraphin`
+- Scroll- and touch-directed real-time 3D journey
+- Original editable Blender 5.2 scene and Meshopt-compressed GLB
+- Adaptive high, balanced and low rendering tiers
+- Static poster fallback for unavailable or lost WebGL
+- Optional, muted-by-default procedural ambient sound
+- English, Armenian and Russian interface
+- Current Seraphin services, durations and AMD prices
+- Ritual finder, real venue imagery, contact and Emly booking
+- Reduced-motion, keyboard and screen-reader support
 
-## Local development
+## Development
 
 ```bash
 npm install
@@ -15,8 +22,16 @@ npm run dev
 npm run check
 ```
 
+Regenerate the source scene with Blender 5.2:
+
+```bash
+blender --background --python assets/source/create_passage_scene.py
+```
+
+The web model was compressed from the generated source GLB with glTF-Transform 4.4.2 using Meshopt high compression. See `ASSET_MANIFEST.md` and `PERFORMANCE.md`.
+
 ## Content status
 
-Prices were transcribed from the current public Emly menu on 14 August 2026. The address and hours use the strongest current evidence—Mamikonyants 44/2 and 11:00–22:00 daily—but the owner must reconfirm all business data before replacing the official domain. Media in `public/images` came from Seraphin's own public profile; written rights confirmation and original files are still required for final commercial launch.
+Prices were transcribed from Seraphin's public Emly menu on 14 August 2026. The address and hours use the strongest available public evidence but must be reconfirmed by the owner before replacing the official domain. Media is used for this consented, client-only demonstration; final public-launch clearance remains an owner gate.
 
-See [DATA_SOURCES.md](DATA_SOURCES.md) for the launch gate.
+See `DATA_SOURCES.md` and `NOTICE.md`.
