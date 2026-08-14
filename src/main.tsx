@@ -16,7 +16,7 @@ import "@fontsource/noto-serif-armenian/armenian-500.css"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import App from "./App"
-import "./styles.css"
+import "./concepts/concepts.css"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

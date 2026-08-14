@@ -1,0 +1,1041 @@
+:root {
+  color: #f6f0e5;
+  background: #07120f;
+  font-family: "Noto Sans", sans-serif;
+  font-synthesis: none;
+  --forest: #07120f;
+  --forest-soft: #10251e;
+  --ivory: #f6f0e5;
+  --brass: #d4ad62;
+  --brass-bright: #f0cf8d;
+  --line: rgba(246, 240, 229, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--forest);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--forest);
+}
+
+button,
+a {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-160%);
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  color: var(--forest);
+  background: var(--ivory);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.concept-lab {
+  min-height: 100svh;
+  background: var(--forest);
+}
+
+.lab-header {
+  position: fixed;
+  z-index: 40;
+  top: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto minmax(12rem, 1fr);
+  align-items: center;
+  width: 100%;
+  min-height: 5.4rem;
+  padding: 0 3.5vw;
+  border-bottom: 1px solid rgba(246, 240, 229, 0.1);
+  background: linear-gradient(180deg, rgba(4, 12, 9, 0.86), rgba(4, 12, 9, 0.18));
+  backdrop-filter: blur(16px);
+}
+
+.lab-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: fit-content;
+  text-decoration: none;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.lab-brand__mark {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(212, 173, 98, 0.65);
+  border-radius: 50%;
+  color: var(--brass-bright);
+  font-family: "Noto Serif", serif;
+  font-size: 1rem;
+}
+
+.lab-concept-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(246, 240, 229, 0.14);
+  border-radius: 999px;
+  background: rgba(5, 15, 12, 0.48);
+}
+
+.lab-concept-nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.58rem 0.82rem;
+  border-radius: 999px;
+  text-decoration: none;
+  color: rgba(246, 240, 229, 0.58);
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 200ms ease, background 200ms ease;
+}
+
+.lab-concept-nav a span {
+  color: var(--brass-bright);
+}
+
+.lab-concept-nav em {
+  font-style: normal;
+}
+
+.lab-concept-nav a:hover,
+.lab-concept-nav a[aria-current="page"] {
+  color: var(--ivory);
+  background: rgba(246, 240, 229, 0.1);
+}
+
+.lab-book {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.67rem;
+  font-weight: 600;
+}
+
+.lab-book::after {
+  content: "↗";
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: var(--forest);
+  background: var(--brass-bright);
+}
+
+.concept {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--forest);
+}
+
+.concept-hero {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-height: 100svh;
+  padding: 7.5rem 6vw 5.5rem;
+}
+
+.concept-plate,
+.concept-scene,
+.concept-vignette {
+  position: absolute;
+  inset: 0;
+}
+
+.concept-plate {
+  z-index: -4;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  transform: scale(1.03);
+  animation: plate-breathe 12s ease-in-out infinite alternate;
+}
+
+.concept-vignette {
+  z-index: -2;
+  pointer-events: none;
+}
+
+.concept-scene {
+  z-index: -1;
+  pointer-events: none;
+}
+
+.concept-scene__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: saturate(0.92) contrast(1.05);
+}
+
+.concept-copy {
+  position: relative;
+  z-index: 3;
+  width: min(42rem, 49vw);
+}
+
+.concept-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0 0 1.1rem;
+  color: var(--brass-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.69rem;
+  font-weight: 600;
+}
+
+.concept-kicker::before {
+  content: "";
+  width: 2.5rem;
+  height: 1px;
+  background: currentColor;
+}
+
+.concept h1 {
+  max-width: 11ch;
+  margin: 0;
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(4.7rem, 8.5vw, 9.4rem);
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+  text-shadow: 0 0.18em 1em rgba(0, 0, 0, 0.32);
+}
+
+.concept-lede {
+  max-width: 33rem;
+  margin: 1.8rem 0 0;
+  color: rgba(246, 240, 229, 0.75);
+  font-size: clamp(0.92rem, 1.25vw, 1.08rem);
+  line-height: 1.7;
+}
+
+.concept-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 2rem;
+}
+
+.concept-primary,
+.concept-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.45rem;
+  padding: 0 1.35rem;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  font-size: 0.68rem;
+  font-weight: 600;
+  transition: transform 220ms ease, background 220ms ease, color 220ms ease;
+}
+
+.concept-primary {
+  border: 1px solid var(--brass-bright);
+  color: var(--forest);
+  background: var(--brass-bright);
+}
+
+.concept-secondary {
+  border: 1px solid rgba(246, 240, 229, 0.32);
+  color: var(--ivory);
+  background: rgba(4, 13, 10, 0.28);
+  backdrop-filter: blur(9px);
+}
+
+.concept-primary:hover,
+.concept-secondary:hover {
+  transform: translateY(-2px);
+}
+
+.concept-primary:focus-visible,
+.concept-secondary:focus-visible,
+.lab-header a:focus-visible,
+.oracle-choice:focus-visible {
+  outline: 2px solid var(--ivory);
+  outline-offset: 4px;
+}
+
+.concept-footer {
+  position: absolute;
+  z-index: 4;
+  right: 3.5vw;
+  bottom: 2rem;
+  left: 3.5vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(246, 240, 229, 0.56);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.61rem;
+}
+
+.concept-footer__scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.concept-footer__scroll::before {
+  content: "";
+  width: 2.6rem;
+  height: 1px;
+  background: rgba(246, 240, 229, 0.52);
+  animation: scroll-line 1.8s ease-in-out infinite;
+  transform-origin: left;
+}
+
+.concept-footer a {
+  text-decoration: none;
+}
+
+.concept-footer a:hover {
+  color: var(--ivory);
+}
+
+.hook-proof {
+  position: absolute;
+  z-index: 4;
+  right: 3.5vw;
+  bottom: 5rem;
+  width: min(18rem, 24vw);
+  padding: 1rem;
+  border-left: 1px solid rgba(240, 207, 141, 0.46);
+  color: rgba(246, 240, 229, 0.58);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.hook-proof span {
+  color: var(--brass-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.56rem;
+}
+
+.hook-proof p {
+  margin: 0.45rem 0 0;
+}
+
+/* Concept 01: a branded living object. */
+.concept-plate--lotus {
+  background-image: url("../../public/images/concept-living-lotus.webp");
+  background-position: 58% center;
+}
+
+.concept--lotus .concept-vignette {
+  background:
+    radial-gradient(circle at 65% 52%, transparent 0 22%, rgba(2, 10, 7, 0.22) 55%, rgba(2, 10, 7, 0.65) 100%),
+    linear-gradient(90deg, rgba(3, 12, 9, 0.9) 0%, rgba(3, 12, 9, 0.65) 32%, transparent 66%);
+}
+
+.lotus-halo {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 65%;
+  width: min(48vw, 46rem);
+  aspect-ratio: 1;
+  border: 1px solid rgba(229, 195, 126, 0.22);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 8rem rgba(206, 154, 64, 0.08), inset 0 0 6rem rgba(206, 154, 64, 0.05);
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 1.2s ease;
+}
+
+.lotus-halo::before,
+.lotus-halo::after {
+  content: "";
+  position: absolute;
+  border: 1px solid rgba(229, 195, 126, 0.11);
+  border-radius: inherit;
+  animation: halo-orbit 18s linear infinite;
+}
+
+.lotus-halo::before {
+  inset: 8%;
+}
+
+.lotus-halo::after {
+  inset: 18%;
+  animation-direction: reverse;
+  animation-duration: 13s;
+}
+
+.concept--lotus.is-awake .lotus-halo {
+  border-color: rgba(240, 207, 141, 0.5);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.concept--lotus.is-awake .concept-plate {
+  transform: scale(1.1);
+  filter: saturate(1.15) brightness(1.08);
+  transition: transform 1.8s cubic-bezier(0.16, 1, 0.3, 1), filter 1.4s ease;
+}
+
+/* Concept 02: a cinematic crossing into another state. */
+.concept-plate--threshold {
+  background-image: url("../../public/images/concept-threshold.webp");
+  background-position: center 48%;
+  transition: transform 2.2s cubic-bezier(0.16, 1, 0.3, 1), filter 1.5s ease;
+}
+
+.concept--threshold .concept-vignette {
+  background:
+    linear-gradient(180deg, rgba(4, 11, 9, 0.45), transparent 38%, rgba(3, 8, 6, 0.6)),
+    radial-gradient(ellipse at center, transparent 0 26%, rgba(2, 8, 6, 0.22) 58%, rgba(2, 8, 6, 0.78) 100%);
+}
+
+.concept--threshold .concept-copy {
+  width: min(46rem, 58vw);
+  margin: 4vh auto 0;
+  text-align: center;
+}
+
+.concept--threshold .concept-kicker,
+.concept--threshold .concept-actions {
+  justify-content: center;
+}
+
+.concept--threshold h1 {
+  max-width: 9ch;
+  margin-inline: auto;
+}
+
+.concept--threshold .concept-lede {
+  max-width: 31rem;
+  margin-inline: auto;
+}
+
+.threshold-curtain {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: 32vw;
+  pointer-events: none;
+  opacity: 0.85;
+  filter: blur(0.4px);
+  transition: transform 2s cubic-bezier(0.65, 0, 0.12, 1), opacity 1.7s ease;
+}
+
+.threshold-curtain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(88deg, rgba(203, 190, 159, 0.1) 0 8%, rgba(222, 207, 173, 0.24) 12%, rgba(48, 65, 52, 0.3) 21%);
+  backdrop-filter: blur(3px);
+}
+
+.threshold-curtain--left {
+  left: 0;
+  transform: translateX(-30%);
+  clip-path: polygon(0 0, 100% 0, 76% 50%, 100% 100%, 0 100%);
+}
+
+.threshold-curtain--right {
+  right: 0;
+  transform: translateX(30%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 24% 50%);
+}
+
+.concept--threshold.is-entered .threshold-curtain--left {
+  transform: translateX(-105%);
+  opacity: 0;
+}
+
+.concept--threshold.is-entered .threshold-curtain--right {
+  transform: translateX(105%);
+  opacity: 0;
+}
+
+.concept--threshold.is-entered .concept-plate {
+  transform: scale(1.16);
+  filter: brightness(1.12) saturate(1.12);
+}
+
+.threshold-depth {
+  position: absolute;
+  z-index: 4;
+  right: 3.5vw;
+  top: 50%;
+  display: grid;
+  gap: 0.55rem;
+  transform: translateY(-50%);
+}
+
+.threshold-depth span {
+  width: 2.6rem;
+  height: 1px;
+  background: rgba(246, 240, 229, 0.24);
+  transform-origin: right;
+}
+
+.threshold-depth span:nth-child(2) {
+  transform: scaleX(0.72);
+}
+
+.threshold-depth span:nth-child(3) {
+  transform: scaleX(0.44);
+}
+
+/* Concept 03: a body-led recommendation instead of a conventional menu. */
+.concept-plate--oracle {
+  background-image: url("../../public/images/concept-ritual-oracle.webp");
+  background-position: 43% center;
+}
+
+.oracle-pulse {
+  position: absolute;
+  z-index: -1;
+  top: 48%;
+  left: 31%;
+  width: min(44vw, 42rem);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+}
+
+.oracle-pulse i {
+  position: absolute;
+  inset: 30%;
+  border: 1px solid rgba(240, 207, 141, 0.22);
+  border-radius: 50%;
+  animation: oracle-wave 4s ease-out infinite;
+}
+
+.oracle-pulse i:nth-child(2) { animation-delay: 1.3s; }
+.oracle-pulse i:nth-child(3) { animation-delay: 2.6s; }
+
+.concept--oracle .concept-vignette {
+  background:
+    linear-gradient(90deg, rgba(4, 13, 10, 0.08) 25%, rgba(4, 13, 10, 0.7) 65%, rgba(4, 13, 10, 0.96) 100%),
+    linear-gradient(180deg, rgba(4, 13, 10, 0.32), transparent 35%, rgba(4, 13, 10, 0.72));
+}
+
+.concept--oracle .concept-copy {
+  justify-self: end;
+  width: min(37rem, 43vw);
+}
+
+.concept--oracle h1 {
+  max-width: 8ch;
+  font-size: clamp(4.3rem, 7vw, 8rem);
+}
+
+.oracle-choices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.55rem;
+  margin: 1.6rem 0 0;
+}
+
+.oracle-choice {
+  min-height: 4.6rem;
+  padding: 0.7rem;
+  border: 1px solid rgba(246, 240, 229, 0.22);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  color: rgba(246, 240, 229, 0.68);
+  background: rgba(7, 20, 16, 0.5);
+  backdrop-filter: blur(12px);
+  font-size: 0.72rem;
+  line-height: 1.25;
+  transition: border-color 200ms ease, color 200ms ease, transform 200ms ease, background 200ms ease;
+}
+
+.oracle-choice:hover,
+.oracle-choice[aria-pressed="true"] {
+  border-color: var(--brass-bright);
+  color: var(--ivory);
+  background: rgba(128, 94, 43, 0.28);
+  transform: translateY(-2px);
+}
+
+.oracle-result {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  min-height: 6.7rem;
+  margin-top: 0.65rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid rgba(212, 173, 98, 0.46);
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, rgba(154, 113, 49, 0.21), rgba(5, 17, 13, 0.68));
+  backdrop-filter: blur(16px);
+  animation: result-arrive 450ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.oracle-result small {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--brass-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.56rem;
+}
+
+.oracle-result strong {
+  display: block;
+  font-family: "Noto Serif", serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+
+.oracle-result p {
+  margin: 0.3rem 0 0;
+  color: rgba(246, 240, 229, 0.64);
+  font-size: 0.73rem;
+}
+
+.oracle-result a {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  text-decoration: none;
+  color: var(--forest);
+  background: var(--brass-bright);
+}
+
+/* Index / review surface */
+.lab-index {
+  min-height: 100svh;
+  padding: 9rem 4vw 4rem;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(166, 120, 52, 0.17), transparent 30%),
+    linear-gradient(145deg, #091912, #030908 70%);
+}
+
+.lab-index__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.52fr);
+  gap: 5vw;
+  align-items: end;
+  margin-bottom: 3rem;
+}
+
+.lab-index__intro h1 {
+  max-width: 12ch;
+  margin: 0;
+  font-family: "Noto Serif", serif;
+  font-size: clamp(3.5rem, 7vw, 7.4rem);
+  font-weight: 400;
+  line-height: 0.88;
+  letter-spacing: -0.05em;
+}
+
+.lab-index__intro p {
+  max-width: 37rem;
+  margin: 0;
+  color: rgba(246, 240, 229, 0.66);
+  line-height: 1.65;
+}
+
+.lab-index__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.lab-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 55vh;
+  overflow: hidden;
+  padding: 1.4rem;
+  border: 1px solid rgba(246, 240, 229, 0.15);
+  border-radius: 1.2rem;
+  text-decoration: none;
+  background-position: center;
+  background-size: cover;
+  isolation: isolate;
+}
+
+.lab-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(3, 9, 7, 0.05), rgba(3, 9, 7, 0.9));
+}
+
+.lab-card::after {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background: inherit;
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lab-card:hover::after {
+  transform: scale(1.07);
+}
+
+.lab-card--lotus {
+  background-image: url("../../public/images/concept-living-lotus.webp");
+}
+
+.lab-card--threshold {
+  background-image: url("../../public/images/concept-threshold.webp");
+}
+
+.lab-card--oracle {
+  background-image: url("../../public/images/concept-ritual-oracle.webp");
+}
+
+.lab-card__number {
+  margin-bottom: auto;
+  color: var(--brass-bright);
+  font-family: "Noto Serif", serif;
+  font-size: 2.3rem;
+}
+
+.lab-card h2 {
+  margin: 0;
+  font-family: "Noto Serif", serif;
+  font-size: clamp(2.1rem, 3.5vw, 3.5rem);
+  font-weight: 400;
+}
+
+.lab-card p {
+  min-height: 3.6em;
+  margin: 0.6rem 0 1.2rem;
+  color: rgba(246, 240, 229, 0.65);
+  font-size: 0.81rem;
+  line-height: 1.5;
+}
+
+.lab-card__open {
+  color: var(--brass-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+
+@keyframes plate-breathe {
+  from { transform: scale(1.03); }
+  to { transform: scale(1.075); }
+}
+
+@keyframes halo-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes scroll-line {
+  0%, 100% { transform: scaleX(0.3); opacity: 0.35; }
+  50% { transform: scaleX(1); opacity: 1; }
+}
+
+@keyframes result-arrive {
+  from { opacity: 0; transform: translateY(0.75rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes oracle-wave {
+  from { opacity: 0.65; transform: scale(0.25); }
+  to { opacity: 0; transform: scale(3.2); }
+}
+
+@media (max-width: 980px) {
+  .lab-header {
+    grid-template-columns: 1fr auto 1fr;
+    padding-inline: 1.4rem;
+  }
+
+  .lab-brand__word,
+  .lab-concept-nav a:not([aria-current="page"]) em,
+  .lab-concept-nav a[aria-current="page"] em {
+    display: none;
+  }
+
+  .lab-concept-nav a {
+    padding-inline: 0.75rem;
+  }
+
+  .concept-copy {
+    width: min(37rem, 58vw);
+  }
+
+  .concept--oracle .concept-copy {
+    width: min(34rem, 49vw);
+  }
+
+  .lab-index__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lab-card {
+    min-height: 42rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .lab-header {
+    grid-template-columns: auto 1fr auto;
+    min-height: 4.45rem;
+    padding-inline: 0.75rem;
+  }
+
+  .lab-brand {
+    gap: 0;
+  }
+
+  .lab-brand__mark {
+    width: 1.9rem;
+  }
+
+  .lab-concept-nav {
+    justify-self: center;
+    gap: 0.05rem;
+  }
+
+  .lab-concept-nav a {
+    padding: 0.48rem 0.6rem;
+  }
+
+  .lab-book {
+    font-size: 0;
+  }
+
+  .lab-book::after {
+    width: 1.9rem;
+    font-size: 0.8rem;
+  }
+
+  .concept-hero {
+    align-items: end;
+    min-height: 100svh;
+    padding: 7rem 1.25rem 5.4rem;
+  }
+
+  .concept-copy,
+  .concept--threshold .concept-copy,
+  .concept--oracle .concept-copy {
+    width: 100%;
+    margin: 0;
+    justify-self: stretch;
+    text-align: left;
+  }
+
+  .concept h1,
+  .concept--threshold h1,
+  .concept--oracle h1 {
+    max-width: 8.3ch;
+    margin-inline: 0;
+    font-size: clamp(3.65rem, 17vw, 5.2rem);
+    line-height: 0.84;
+  }
+
+  .concept-lede,
+  .concept--threshold .concept-lede {
+    max-width: 30rem;
+    margin: 1.15rem 0 0;
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+
+  .concept-kicker,
+  .concept--threshold .concept-kicker {
+    justify-content: flex-start;
+    margin-bottom: 0.8rem;
+    font-size: 0.6rem;
+  }
+
+  .concept-actions,
+  .concept--threshold .concept-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    justify-content: stretch;
+    margin-top: 1.25rem;
+  }
+
+  .concept-primary,
+  .concept-secondary {
+    min-height: 3.2rem;
+    padding-inline: 0.7rem;
+    font-size: 0.59rem;
+  }
+
+  .concept-footer {
+    right: 1.25rem;
+    bottom: 1.35rem;
+    left: 1.25rem;
+    font-size: 0.51rem;
+  }
+
+  .concept-footer__scroll {
+    display: none;
+  }
+
+  .hook-proof {
+    display: none;
+  }
+
+  .concept-plate--lotus {
+    background-position: 64% center;
+  }
+
+  .concept--lotus .concept-vignette {
+    background: linear-gradient(180deg, rgba(3, 12, 9, 0.2) 0%, rgba(3, 12, 9, 0.05) 38%, rgba(3, 12, 9, 0.95) 76%);
+  }
+
+  .lotus-halo {
+    top: 40%;
+    left: 65%;
+    width: 86vw;
+  }
+
+  .concept-plate--threshold {
+    background-position: 55% center;
+  }
+
+  .concept--threshold .concept-vignette {
+    background: linear-gradient(180deg, rgba(3, 9, 7, 0.16) 0%, transparent 38%, rgba(3, 9, 7, 0.96) 76%);
+  }
+
+  .threshold-curtain {
+    width: 43vw;
+  }
+
+  .threshold-depth {
+    display: none;
+  }
+
+  .concept--oracle {
+    min-height: 110svh;
+  }
+
+  .concept--oracle .concept-hero {
+    min-height: 110svh;
+    padding-bottom: 4.8rem;
+  }
+
+  .concept-plate--oracle {
+    background-position: 38% center;
+  }
+
+  .oracle-pulse {
+    top: 35%;
+    left: 40%;
+    width: 90vw;
+  }
+
+  .concept--oracle .concept-vignette {
+    background: linear-gradient(180deg, rgba(4, 13, 10, 0.1) 0%, rgba(4, 13, 10, 0.12) 38%, rgba(4, 13, 10, 0.96) 67%);
+  }
+
+  .concept--oracle h1 {
+    font-size: clamp(3.3rem, 15.5vw, 4.8rem);
+  }
+
+  .oracle-choices {
+    margin-top: 1rem;
+  }
+
+  .oracle-choice {
+    min-height: 4rem;
+    padding: 0.5rem;
+    font-size: 0.64rem;
+  }
+
+  .oracle-result {
+    min-height: 5.6rem;
+    padding: 0.8rem 0.9rem;
+  }
+
+  .oracle-result strong {
+    font-size: 1.05rem;
+  }
+
+  .lab-index {
+    padding: 7rem 1rem 2rem;
+  }
+
+  .lab-index__intro {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.7rem;
+  }
+
+  .lab-index__intro h1 {
+    font-size: clamp(3.2rem, 15vw, 5rem);
+  }
+
+  .lab-index__intro p {
+    font-size: 0.83rem;
+  }
+
+  .lab-card {
+    min-height: 32rem;
+    padding: 1.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
