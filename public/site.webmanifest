@@ -1,7 +1,8 @@
 {
   "name": "Seraphin Boutique Spa",
   "short_name": "Seraphin",
-  "start_url": "/seraphin-boutique-spa/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#faf3e3",
   "theme_color": "#20352a",

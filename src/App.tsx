@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, type ReactNode } from "react"
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react"
 import { motion, useReducedMotion } from "motion/react"
 import { RitualFinder } from "./components/RitualFinder"
 import { ServiceMenu } from "./components/ServiceMenu"
@@ -39,6 +39,8 @@ function ExternalLink({ href, children, className = "", label }: { href: string;
 export default function App() {
   const [locale, setLocale] = useState<Locale>(getInitialLocale)
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const navRef = useRef<HTMLElement>(null)
   const t = copy[locale]
 
   useEffect(() => {
@@ -48,9 +50,35 @@ export default function App() {
 
   useEffect(() => {
     if (!menuOpen) return
-    const close = (event: KeyboardEvent) => event.key === "Escape" && setMenuOpen(false)
-    window.addEventListener("keydown", close)
-    return () => window.removeEventListener("keydown", close)
+    const nav = navRef.current
+    const firstLink = nav?.querySelector<HTMLAnchorElement>("a")
+    const focusFrame = window.requestAnimationFrame(() => firstLink?.focus())
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false)
+        menuButtonRef.current?.focus()
+        return
+      }
+      if (event.key !== "Tab" || !nav) return
+      const links = [...nav.querySelectorAll<HTMLAnchorElement>("a")]
+      const first = links[0]
+      const last = links.at(-1)
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        menuButtonRef.current?.focus()
+      } else if (!event.shiftKey && document.activeElement === menuButtonRef.current) {
+        event.preventDefault()
+        first?.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        menuButtonRef.current?.focus()
+      }
+    }
+    window.addEventListener("keydown", handleKey)
+    return () => {
+      window.cancelAnimationFrame(focusFrame)
+      window.removeEventListener("keydown", handleKey)
+    }
   }, [menuOpen])
 
   const closeMenu = () => setMenuOpen(false)
@@ -63,7 +91,7 @@ export default function App() {
           <span><b>SERAPHIN</b><small>boutique spa</small></span>
         </a>
 
-        <nav className={menuOpen ? "nav-links is-open" : "nav-links"} aria-label="Primary navigation">
+        <nav ref={navRef} id="primary-menu" className={menuOpen ? "nav-links is-open" : "nav-links"} aria-label="Primary navigation">
           <a href="#treatments" onClick={closeMenu}>{t.nav.treatments}</a>
           <a href="#finder" onClick={closeMenu}>{t.nav.finder}</a>
           <a href="#space" onClick={closeMenu}>{t.nav.space}</a>
@@ -79,7 +107,7 @@ export default function App() {
             ))}
           </div>
           <ExternalLink href={business.booking} className="header-book" label={`${t.nav.book}. ${t.common.opensNew}`}>{t.nav.book}</ExternalLink>
-          <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="primary-menu" onClick={() => setMenuOpen((open) => !open)}>
+          <button ref={menuButtonRef} className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="primary-menu" onClick={() => setMenuOpen((open) => !open)}>
             <span className="sr-only">{menuOpen ? t.nav.close : t.nav.menu}</span>
             <span aria-hidden="true"></span><span aria-hidden="true"></span>
           </button>

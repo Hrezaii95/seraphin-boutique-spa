@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 
 import {
@@ -43,12 +43,6 @@ export function RitualFinder({ locale, copy: copyOverride }: RitualFinderProps) 
   const suggestedService = selectedChoice
     ? services.find((service) => service.id === selectedChoice.result)
     : undefined
-
-  useEffect(() => {
-    if (suggestedService) {
-      resultHeadingRef.current?.focus()
-    }
-  }, [suggestedService])
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat(localeMeta[locale].intl, {
@@ -119,6 +113,7 @@ export function RitualFinder({ locale, copy: copyOverride }: RitualFinderProps) 
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
             transition={{ duration: reduceMotion ? 0.1 : 0.38, ease: easing }}
+            onAnimationComplete={() => resultHeadingRef.current?.focus()}
           >
             <p className="eyebrow">{copy.suggestion}</p>
             <h3 ref={resultHeadingRef} tabIndex={-1}>
