@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://hrezaii95.github.io/seraphin-boutique-spa/sitemap.xml
+Sitemap: https://seraphin-native-flow.rezaiixhossein.chatgpt.site/sitemap.xml

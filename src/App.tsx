@@ -1,10 +1,9 @@
-import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { motion, useReducedMotion } from "motion/react"
+import { NativePortalHero } from "./components/NativePortalHero"
 import { RitualFinder } from "./components/RitualFinder"
 import { ServiceMenu } from "./components/ServiceMenu"
 import { business, copy, gallery, localeMeta, type Locale } from "./content"
-
-const QuietBloom = lazy(() => import("./components/QuietBloom").then((module) => ({ default: module.QuietBloom })))
 
 const localeOrder: Locale[] = ["en", "hy", "ru"]
 
@@ -39,7 +38,6 @@ function ExternalLink({ href, children, className = "", label }: { href: string;
 export default function App() {
   const [locale, setLocale] = useState<Locale>(getInitialLocale)
   const [menuOpen, setMenuOpen] = useState(false)
-  const reduce = useReducedMotion()
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const navRef = useRef<HTMLElement>(null)
   const t = copy[locale]
@@ -88,8 +86,7 @@ export default function App() {
     <div className={`site locale-${locale}`}>
       <header className="site-header">
         <a className="brand-lockup" href="#top" aria-label="Seraphin Boutique Spa — home">
-          <img src="images/seraphin-logo.jpg" alt="" width="48" height="48" />
-          <span><b>SERAPHIN</b><small>boutique spa</small></span>
+          <span><b>Private Thai healing</b><small>Yerevan · Arabkir</small></span>
         </a>
 
         <nav ref={navRef} id="primary-menu" className={menuOpen ? "nav-links is-open" : "nav-links"} aria-label="Primary navigation">
@@ -116,31 +113,7 @@ export default function App() {
       </header>
 
       <main id="main">
-        <section className="hero" id="top">
-          <div className="hero-cinematic-bg" aria-hidden="true"><i></i><i></i><i></i></div>
-          <div className="hero-copy">
-            <motion.p className="eyebrow" initial={{ opacity: 0, y: reduce ? 0 : 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduce ? 0 : 0.18, duration: reduce ? 0.1 : 0.7, ease: [0.22, 1, 0.36, 1] }}>{t.hero.eyebrow}</motion.p>
-            <motion.h1 initial={{ opacity: 0, y: reduce ? 0 : 42, clipPath: reduce ? "none" : "inset(0 0 100% 0)" }} animate={{ opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)" }} transition={{ delay: reduce ? 0 : 0.26, duration: reduce ? 0.1 : 1.05, ease: [0.22, 1, 0.36, 1] }}>{t.hero.title}</motion.h1>
-            <motion.p className="hero-body" initial={{ opacity: 0, y: reduce ? 0 : 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduce ? 0 : 0.58, duration: reduce ? 0.1 : 0.72, ease: [0.22, 1, 0.36, 1] }}>{t.hero.body}</motion.p>
-            <motion.div className="hero-actions" initial={{ opacity: 0, y: reduce ? 0 : 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduce ? 0 : 0.72, duration: reduce ? 0.1 : 0.68, ease: [0.22, 1, 0.36, 1] }}>
-              <a className="button button-primary" href="#treatments">{t.hero.primary}<span aria-hidden="true">↓</span></a>
-              <a className="button button-quiet" href="#finder">{t.hero.secondary}<span aria-hidden="true">→</span></a>
-            </motion.div>
-            <motion.p className="hero-note" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: reduce ? 0 : 0.9, duration: reduce ? 0.1 : 0.7 }}><span aria-hidden="true"></span>{t.hero.note}</motion.p>
-          </div>
-          <motion.div className="hero-art" initial={{ opacity: 0, scale: reduce ? 1 : 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: reduce ? 0 : 0.12, duration: reduce ? 0.1 : 1.3, ease: [0.22, 1, 0.36, 1] }}>
-            <div className="quiet-bloom">
-              <Suspense fallback={<div className="quiet-bloom-loading" aria-hidden="true"></div>}>
-                <QuietBloom ariaLabel={t.hero.art} />
-              </Suspense>
-            </div>
-            <span className="hero-art-label">The breathing stone <i>01</i></span>
-          </motion.div>
-          <a className="hero-scroll-cue" href="#finder" aria-label={t.nav.finder}><span></span></a>
-          <div className="hero-rail" aria-label="Highlights">
-            {t.trust.map((item, index) => <span key={item}><i>{String(index + 1).padStart(2, "0")}</i>{item}</span>)}
-          </div>
-        </section>
+        <NativePortalHero locale={locale} />
 
         <section className="intro-section section-shell">
           <Reveal className="intro-grid">
@@ -176,7 +149,7 @@ export default function App() {
         </section>
 
         <section className="couples-section">
-          <div className="couples-image" role="img" aria-label={t.space.captions[2]}></div>
+          <div className="couples-image" role="img" aria-label={t.space.captions[2]} style={{ backgroundImage: 'linear-gradient(rgba(26,42,34,.1),rgba(26,42,34,.16)), url("images/room-quiet.jpg")' }}></div>
           <Reveal className="couples-copy">
             <p className="eyebrow">{t.couples.eyebrow}</p>
             <h2>{t.couples.title}</h2>
@@ -219,7 +192,7 @@ export default function App() {
       </main>
 
       <footer className="site-footer">
-        <div className="footer-brand"><img src="images/seraphin-logo.jpg" alt="" width="72" height="72" /><p>{t.footer.line}</p></div>
+        <div className="footer-brand"><img src="images/seraphin-logo.jpg" alt="Seraphin Boutique Spa" width="360" height="360" /><p>{t.footer.line}</p></div>
         <div className="footer-links">
           <ExternalLink href={business.booking}>{t.nav.book}</ExternalLink>
           <ExternalLink href={business.instagram}>Instagram</ExternalLink>
