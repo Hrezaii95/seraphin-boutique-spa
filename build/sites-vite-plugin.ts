@@ -20,8 +20,31 @@ export function sites(): Plugin {
     apply: "build",
     configResolved(config) { root = config.root },
     async closeBundle() {
-      const outputDirectory = resolve(root, "dist", ".openai")
+      const buildDirectory = resolve(root, "dist")
+      const outputDirectory = resolve(buildDirectory, ".openai")
+      const clientDirectory = resolve(buildDirectory, "client")
       const hostingConfig = resolve(root, ".openai", "hosting.json")
+
+      // Sites binds static files from dist/client while Vite emits this legacy
+      // SPA at dist/. Mirror only the public build entries; keep the Worker at
+      // dist/server/index.js for the hosting runtime.
+      await rm(clientDirectory, { recursive: true, force: true })
+      await mkdir(clientDirectory, { recursive: true })
+      const staticEntries = [
+        "assets",
+        "images",
+        "favicon.svg",
+        "index.html",
+        "og.jpg",
+        "robots.txt",
+        "site.webmanifest",
+        "sitemap.xml",
+      ]
+      for (const entry of staticEntries) {
+        const source = resolve(buildDirectory, entry)
+        if (await exists(source)) await cp(source, resolve(clientDirectory, entry), { recursive: true })
+      }
+
       await rm(outputDirectory, { recursive: true, force: true })
       await mkdir(outputDirectory, { recursive: true })
       if (await exists(hostingConfig)) await cp(hostingConfig, resolve(outputDirectory, "hosting.json"))
